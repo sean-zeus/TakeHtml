@@ -1,4 +1,4 @@
-namespace TakeHtml
+namespace TakeHtml.Model
 {
     public class WeatherForecast
     {
