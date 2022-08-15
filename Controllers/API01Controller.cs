@@ -9,11 +9,11 @@ namespace TakeHtml.Controllers
     //參考連結:https://cloud.tencent.com/developer/article/1876712
     [ApiController]
     [Route("[controller]/[action]")]
-    public class APIController : ControllerBase
+    public class API01Controller : ControllerBase
     {
-        private readonly ILogger<APIController> _logger;
+        private readonly ILogger<API01Controller> _logger;
 
-        public APIController(ILogger<APIController> logger)
+        public API01Controller(ILogger<API01Controller> logger)
         {
             _logger = logger;
         }
