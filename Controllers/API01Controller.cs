@@ -2,7 +2,6 @@ using CsvHelper;
 using HtmlAgilityPack;
 using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
-using TakeHtml.Model;
 
 namespace TakeHtml.Controllers
 {

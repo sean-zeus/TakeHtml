@@ -3,7 +3,6 @@ using HtmlAgilityPack;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Text;
-using TakeHtml.Model;
 
 namespace TakeHtml.Controllers
 {
