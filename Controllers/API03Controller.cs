@@ -68,8 +68,9 @@ namespace TakeHtml.Controllers
             var queryCss = document.QuerySelectorAll(CssSelect).Select(node => node.InnerHtml);
 
             //當然 AngleSharp 也提供了 QuerySelector 來抓取單個元素，這兩個方法用起來和 JavaScript 的體驗應該是差不多啦
-            var queryCss2 = document.QuerySelector(CssSelect)?.InnerHtml; 
+            var queryCss2 = document.QuerySelector(CssSelect)?.InnerHtml;
 
+            var sfsdfds = document.QuerySelectorAll(CssSelect).ToList();
             return Ok(queryCss);
         }
 
