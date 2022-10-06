@@ -6,6 +6,8 @@ using TakeHtml.Models.AvDB;
 using Dapper;
 using Microsoft.EntityFrameworkCore;
 using AngleSharp.Html.Parser;
+using System.Text.RegularExpressions;
+using System;
 
 //using System.Data;
 //using System.Text;
@@ -123,8 +125,7 @@ namespace TakeHtml.Controllers
                     Link = baseUrl + link,
                     Project = startDate.ToString("yyyy-MM-dd") + '~' + endDate.ToString("yyyy-MM-dd")
                 };
-            })
-            .Where(x => x.Title != null && x.Date > startDate && x.Date <= endDate);
+            }).Where(x => x.Title != null && x.Date < startDate && x.Date > endDate);
 
             return _PostMs;
         }
@@ -162,7 +163,9 @@ namespace TakeHtml.Controllers
                 }
             }
 
-            _Ocn.PostMs.AddRange(PostMsAll);
+            var PostMsAllfilter = PostMsAll.Where(x => !x.Title.Contains("FC2PPV") && !x.Title.Contains("HEYZO") && !x.Title.Contains("エッチな") && !x.Title.Contains("人妻斬り") && !x.Title.Contains("10musume") && !x.Title.Contains("Carib") && !x.Title.Contains("1Pondo") && !x.Title.Contains("Kin8tengoku") && !x.Title.Contains("[HD]"));
+
+            _Ocn.PostMs.AddRange(PostMsAllfilter);
             var _saveCount = _Ocn.SaveChanges();
             var _res = _Ocn.PostMs.Where(x => x.Project == startDate.ToString("yyyy-MM-dd") + '~' + endDate.ToString("yyyy-MM-dd"));
 
@@ -288,8 +291,11 @@ namespace TakeHtml.Controllers
             {
                 try
                 {
+                    Regex pattern = new Regex("[;,*/?#]");
+                    var restr = pattern.Replace(fileName, "");
+
                     //string fileExt = GetFileExtensionFromUrl(ImgUrl);
-                    string SaveFilePath = Path.Combine(saveDir, fileName.Replace('/', '_'));
+                    string SaveFilePath = Path.Combine(saveDir, restr);
                     //string SaveFilePath = Path.Combine(saveDir);
                     WebClient webClientImg = new WebClient();
                     webClientImg.DownloadFile(ImgUrl, SaveFilePath);
