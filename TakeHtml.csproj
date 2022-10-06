@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-
+    <Compile Remove="Models\AvDB\PostD.cs" />
   </ItemGroup>
 
   <ItemGroup>

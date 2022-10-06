@@ -19,30 +19,6 @@ namespace TakeHtml.Controllers
         private readonly IDbConnection _DapperOcn;
         public AVController(IDbConnection DapperOcn) => _DapperOcn = DapperOcn;
 
-
-        //private readonly WebAPIContext _context;
-        //public TestBaseController(WebAPIContext context, IConfiguration configuration)
-        //{
-        //    _context = context;
-        //    HelperDapper.OcnStr = configuration.GetConnectionString("WebAPI"); //_context.Database.GetConnectionString()
-        //}
-
-
-        //private readonly IConnectionFactory _factory;
-        //public AVController(IConnectionFactory factory) => this._factory = factory;
-
-        //    public string Index()
-        //    {
-        //        //..驗證資料,假如資料格式錯誤,不需要建立Connection
-        //        using (var cnn = this._factory.CreateConnection())
-        //        {
-        //            var result = cnn.QueryFirst<string>("select 'Hello World' message");
-        //            return result;
-        //        }
-        //    }
-        //}
-
-
         private async static Task<AngleSharp.Dom.IDocument> GetIDocument(string URL)
         {
             var config = AngleSharp.Configuration.Default

@@ -9,10 +9,13 @@ namespace TakeHtml.Models.AvDB
         [Key]
         public long PostMpk { get; set; }
         public string PostMname { get; set; } = null!;
-        public DateTime CrTime { get; set; }
+        public DateTime? CrTime { get; set; } = null!;
         public string? Title { get; set; }
         public string? Link { get; set; }
         public DateTime? Date { get; set; }
         public string Project { get; set; } = null!;
+        public string? imgUrl { get; set; }
+        public string? torrentUrl { get; set; }
+
     }
 }
