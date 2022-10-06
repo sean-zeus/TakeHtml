@@ -121,7 +121,7 @@ namespace TakeHtml.Controllers
                 return new PostM
                 {
                     Date = _itemDate,
-                    Title = _itemtitle,
+                    Title = _itemtitle.Replace("[HD/720p]", ""),
                     Link = baseUrl + link,
                     Project = startDate.ToString("yyyy-MM-dd") + '~' + endDate.ToString("yyyy-MM-dd")
                 };
@@ -163,7 +163,7 @@ namespace TakeHtml.Controllers
                 }
             }
 
-            var PostMsAllfilter = PostMsAll.Where(x => !x.Title.Contains("FC2PPV") && !x.Title.Contains("HEYZO") && !x.Title.Contains("エッチな") && !x.Title.Contains("人妻斬り") && !x.Title.Contains("10musume") && !x.Title.Contains("Carib") && !x.Title.Contains("1Pondo") && !x.Title.Contains("Kin8tengoku") && !x.Title.Contains("[HD]"));
+            var PostMsAllfilter = PostMsAll.Where(x => !x.Title.Contains("FC2PPV") && !x.Title.Contains("HEYZO") && !x.Title.Contains("エッチな") && !x.Title.Contains("人妻斬り") && !x.Title.Contains("10musume") && !x.Title.Contains("Carib") && !x.Title.Contains("1Pondo") && !x.Title.Contains("Kin8tengoku") && !x.Title.Contains("Pacopacomama") && !x.Title.Contains("[HD]"));
 
             _Ocn.PostMs.AddRange(PostMsAllfilter);
             var _saveCount = _Ocn.SaveChanges();
@@ -291,7 +291,7 @@ namespace TakeHtml.Controllers
             {
                 try
                 {
-                    Regex pattern = new Regex("[;,*/?#]");
+                    Regex pattern = new Regex("[;,*/?#| ]");
                     var restr = pattern.Replace(fileName, "");
 
                     //string fileExt = GetFileExtensionFromUrl(ImgUrl);
