@@ -291,7 +291,7 @@ namespace TakeHtml.Controllers
             {
                 try
                 {
-                    Regex pattern = new Regex("[;,*/?#| ]");
+                    Regex pattern = new Regex("[;,*/?#|]");
                     var restr = pattern.Replace(fileName, "");
 
                     //string fileExt = GetFileExtensionFromUrl(ImgUrl);
