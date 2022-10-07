@@ -255,10 +255,15 @@ namespace TakeHtml.Controllers
                 WebCrawler.BatchDownloadImages(@"ImgData", _downLinks.imgUrl, row.Title + ".jpg");
                 WebCrawler.BatchDownloadImages(@"ImgData", _downLinks.torrentUrl, row.Title + ".torrent");
                 Thread.Sleep(3000);
+
+                var update = _Ocn.PostMs.Find(row.PostMpk);
+                update.imgUrl = _downLinks.imgUrl;
+                update.torrentUrl = _downLinks.torrentUrl;
+                await _Ocn.SaveChangesAsync();
             }
 
-            var sql = "UPDATE PostM SET PostMpk=@PostMpk, imgUrl=@imgUrl, torrentUrl=@torrentUrl WHERE PostMpk=@PostMpk";
-            await _Ocn.Database.GetDbConnection().ExecuteAsync(sql, updateItems);
+            //var sql = "UPDATE PostM SET PostMpk=@PostMpk, imgUrl=@imgUrl, torrentUrl=@torrentUrl WHERE PostMpk=@PostMpk";
+            //await _Ocn.Database.GetDbConnection().ExecuteAsync(sql, updateItems);
 
             var _res = await _Ocn.Database.GetDbConnection().QueryAsync<PostM>($"select * from PostM");
 
