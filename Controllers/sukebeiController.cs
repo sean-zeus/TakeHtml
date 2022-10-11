@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using AngleSharp.Html.Parser;
 using System.Text.RegularExpressions;
 using System;
+using Microsoft.AspNetCore.SignalR;
 
 //using System.Data;
 //using System.Text;
@@ -176,100 +177,6 @@ namespace TakeHtml.Controllers
             return Ok(_res);
         }
 
-        public IActionResult returnHtml()
-        {
-            var source = @"
-<!DOCTYPE html>
-<html lang=en>
-    <meta charset=utf-8>
-    <meta name=viewport content=""initial-scale=1, minimum-scale=1, width=device-width"">
-    <title>Error 404 (Not Found)!!1</title>
-    <style></style>
-    <body>
-        <p><b>404.</b> <ins>That’s an error.</ins>
-        <p>The requested URL <code>/error</code> was not found on this server.  <ins>That’s all we know.</ins>
-    </body>
-</html>";
-
-            //使用AngleSharp的默认配置
-            var config = Configuration.Default;
-            //使用给定的配置创建用于评估web页面的新上下文
-            var context = BrowsingContext.New(config);
-            //只需要获得DOM表示
-            var documentNew = context.OpenAsync(req => req.Content(source)).Result;
-
-
-            //对html文档执行操作
-            var p = documentNew.CreateElement("p");
-            p.TextContent = "This is another paragraph.";
-            documentNew.Body.AppendChild(p);
-
-
-            //使用AngleSharp生成html代码自动缩进格式化
-            var indentedText = "";
-            using (var writer = new StringWriter())
-            {
-                documentNew.ToHtml(writer, new AngleSharp.Html.PrettyMarkupFormatter
-                {
-                    Indentation = "\t",
-                    NewLine = "\n"
-                });
-                indentedText = writer.ToString();
-            }
-
-            return Ok(indentedText);
-
-            //參考二
-            //创建一个（可重用）解析器前端
-            //var parser = new HtmlParser();
-            ////html DOM节点
-            //var source = " <h1>Some example source</h1> <p>This is a paragraph element</p> ";
-            ////解析源文件
-            //var document = parser.Parse(source);
-            ////创建P标签
-            //var p = document.CreateElement("p"); p.TextContent = "This is another paragraph.";
-            ////添加到DOM
-            //document.Body.AppendChild(p);
-            ////返回完整html
-            //var html = document.DocumentElement.OuterHtml;
-        }
-
-        public async Task<IActionResult> GetPostsDetails(string Project, string imgCssSel = "", string TorrentCssSel = "", string baseurl = "")
-        {
-            var _proJect = _Ocn.PostMs.Where(x => x.Project == Project).ToList();
-
-            var updateItems = new List<dynamic>();
-            foreach (var row in _proJect)
-            {
-                var _downLinks = GetPostDetail(row.Link, imgCssSel, TorrentCssSel, baseurl).Result;
-                if (_downLinks != null)
-                {
-                    updateItems.Add(new
-                    {
-                        PostMpk = row.PostMpk,
-                        imgUrl = _downLinks.imgUrl,
-                        torrentUrl = _downLinks.torrentUrl
-                    });
-                }
-
-                WebCrawler.BatchDownloadImages(@"ImgData", _downLinks.imgUrl, row.Title + ".jpg");
-                WebCrawler.BatchDownloadImages(@"ImgData", _downLinks.torrentUrl, row.Title + ".torrent");
-                Thread.Sleep(3000);
-
-                var update = _Ocn.PostMs.Find(row.PostMpk);
-                update.imgUrl = _downLinks.imgUrl;
-                update.torrentUrl = _downLinks.torrentUrl;
-                await _Ocn.SaveChangesAsync();
-            }
-
-            //var sql = "UPDATE PostM SET PostMpk=@PostMpk, imgUrl=@imgUrl, torrentUrl=@torrentUrl WHERE PostMpk=@PostMpk";
-            //await _Ocn.Database.GetDbConnection().ExecuteAsync(sql, updateItems);
-
-            var _res = await _Ocn.Database.GetDbConnection().QueryAsync<PostM>($"select * from PostM");
-
-            return Ok(_res);
-        }
-
         [HttpPost]
         public async Task<dynamic> GetPostDetail(string URL, string imgCssSel = "", string torrentCssSel = "", string baseurl = "")
         {
@@ -290,41 +197,130 @@ namespace TakeHtml.Controllers
             return new { imgUrl = imglink, torrentUrl = _torrenthref };
         }
 
-        public class WebCrawler : WebUtility
+        public async Task<IActionResult> GetPostsDetails(string Project, string imgCssSel = "", string TorrentCssSel = "", string baseurl = "")
         {
-            public static void BatchDownloadImages(string saveDir, string ImgUrl, string fileName)
-            {
-                try
-                {
-                    Regex pattern = new Regex("[;,*/?#|]");
-                    var restr = pattern.Replace(fileName, "");
+            var _proJect = _Ocn.PostMs.Where(x => x.Project == Project).ToList();
 
-                    //string fileExt = GetFileExtensionFromUrl(ImgUrl);
-                    string SaveFilePath = Path.Combine(saveDir, restr);
-                    //string SaveFilePath = Path.Combine(saveDir);
-                    WebClient webClientImg = new WebClient();
-                    webClientImg.DownloadFile(ImgUrl, SaveFilePath);
-                }
-                catch (Exception)
+            var updateItems = new List<dynamic>();
+            foreach (var row in _proJect)
+            {
+                var _downLinks = GetPostDetail(row.Link, imgCssSel, TorrentCssSel, baseurl).Result;
+                if (_downLinks != null)
                 {
-                    throw;
+                    updateItems.Add(new
+                    {
+                        PostMpk = row.PostMpk,
+                        imgUrl = _downLinks.imgUrl,
+                        torrentUrl = _downLinks.torrentUrl
+                    });
                 }
+
+                WebCrawler.BatchDownload(@"DownData/" + Project, _downLinks.imgUrl, row.Title + ".jpg");
+                WebCrawler.BatchDownload(@"DownData/" + Project, _downLinks.torrentUrl, row.Title + ".torrent");
+                Thread.Sleep(3000);
+
+                var update = _Ocn.PostMs.Find(row.PostMpk);
+                update.imgUrl = _downLinks.imgUrl;
+                update.torrentUrl = _downLinks.torrentUrl;
+                await _Ocn.SaveChangesAsync();
+            }
+
+            //var sql = "UPDATE PostM SET PostMpk=@PostMpk, imgUrl=@imgUrl, torrentUrl=@torrentUrl WHERE PostMpk=@PostMpk";
+            //await _Ocn.Database.GetDbConnection().ExecuteAsync(sql, updateItems);
+
+            var _res = await _Ocn.Database.GetDbConnection().QueryAsync<PostM>($"select * from PostM");
+
+            return Ok(_res);
+        }
+
+        //        public IActionResult returnHtml()
+        //        {
+        //            var source = @"
+        //<!DOCTYPE html>
+        //<html lang=en>
+        //    <meta charset=utf-8>
+        //    <meta name=viewport content=""initial-scale=1, minimum-scale=1, width=device-width"">
+        //    <title>Error 404 (Not Found)!!1</title>
+        //    <style></style>
+        //    <body>
+        //        <p><b>404.</b> <ins>That’s an error.</ins>
+        //        <p>The requested URL <code>/error</code> was not found on this server.  <ins>That’s all we know.</ins>
+        //    </body>
+        //</html>";
+
+        //            //使用AngleSharp的默认配置
+        //            var config = Configuration.Default;
+        //            //使用给定的配置创建用于评估web页面的新上下文
+        //            var context = BrowsingContext.New(config);
+        //            //只需要获得DOM表示
+        //            var documentNew = context.OpenAsync(req => req.Content(source)).Result;
+
+
+        //            //对html文档执行操作
+        //            var p = documentNew.CreateElement("p");
+        //            p.TextContent = "This is another paragraph.";
+        //            documentNew.Body.AppendChild(p);
+
+
+        //            //使用AngleSharp生成html代码自动缩进格式化
+        //            var indentedText = "";
+        //            using (var writer = new StringWriter())
+        //            {
+        //                documentNew.ToHtml(writer, new AngleSharp.Html.PrettyMarkupFormatter
+        //                {
+        //                    Indentation = "\t",
+        //                    NewLine = "\n"
+        //                });
+        //                indentedText = writer.ToString();
+        //            }
+
+        //            return Ok(indentedText);
+
+        //            //參考二
+        //            //创建一个（可重用）解析器前端
+        //            //var parser = new HtmlParser();
+        //            ////html DOM节点
+        //            //var source = " <h1>Some example source</h1> <p>This is a paragraph element</p> ";
+        //            ////解析源文件
+        //            //var document = parser.Parse(source);
+        //            ////创建P标签
+        //            //var p = document.CreateElement("p"); p.TextContent = "This is another paragraph.";
+        //            ////添加到DOM
+        //            //document.Body.AppendChild(p);
+        //            ////返回完整html
+        //            //var html = document.DocumentElement.OuterHtml;
+        //        }
+    }
+
+    public class WebCrawler
+    {
+        public static void BatchDownload(string saveDir, string ImgUrl, string fileName)
+        {
+            try
+            {
+                Regex pattern = new Regex("[;,*/?#|]");
+                var restr = pattern.Replace(fileName, "");
+
+                //string fileExt = GetFileExtensionFromUrl(ImgUrl);
+                if (!Directory.Exists(saveDir))
+                    Directory.CreateDirectory(saveDir);
+
+                string SaveFilePath = Path.Combine(saveDir, restr);
+
+                WebClient webClient = new WebClient();
+                webClient.DownloadFile(ImgUrl, SaveFilePath);
+            }
+            catch (Exception)
+            {
+                throw;
             }
         }
 
-        public class WebUtility
+        public static string GetFileExtensionFromUrl(string strURL)
         {
-            /// <summary>
-            /// 從URL中取得副檔名
-            /// </summary>
-            /// <param name="strURL"></param>
-            /// <returns></returns>
-            public static string GetFileExtensionFromUrl(string strURL)
-            {
-                strURL = strURL.Split('?')[0];
-                strURL = strURL.Split('/').Last();
-                return strURL.Contains('.') ? strURL.Substring(strURL.LastIndexOf('.')) : "";
-            }
+            strURL = strURL.Split('?')[0];
+            strURL = strURL.Split('/').Last();
+            return strURL.Contains('.') ? strURL.Substring(strURL.LastIndexOf('.')) : "";
         }
     }
 }
