@@ -199,7 +199,7 @@ namespace TakeHtml.Controllers
 
         public async Task<IActionResult> GetPostsDetails(string Project, string imgCssSel = "", string TorrentCssSel = "", string baseurl = "")
         {
-            var _proJect = _Ocn.PostMs.Where(x => x.Project == Project).ToList();
+            var _proJect = _Ocn.PostMs.Where(x => x.Project == Project && x.imgUrl == null && x.torrentUrl == null).ToList();
 
             var updateItems = new List<dynamic>();
             foreach (var row in _proJect)
