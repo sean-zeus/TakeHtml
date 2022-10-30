@@ -164,7 +164,7 @@ namespace TakeHtml.Controllers
                 }
             }
 
-            var PostMsAllfilter = PostMsAll.Where(x => !x.Title.Contains("FC2PPV") && !x.Title.Contains("HEYZO") && !x.Title.Contains("エッチな") && !x.Title.Contains("人妻斬り") && !x.Title.Contains("10musume") && !x.Title.Contains("Carib") && !x.Title.Contains("1Pondo") && !x.Title.Contains("Kin8tengoku") && !x.Title.Contains("Pacopacomama") && !x.Title.Contains("[HD]"));
+            var PostMsAllfilter = PostMsAll.Where(x => !x.Title.Contains("FC2PPV") && !x.Title.Contains("HEYZO") && !x.Title.Contains("エッチな") && !x.Title.Contains("人妻斬り") && !x.Title.Contains("10musume") && !x.Title.Contains("Carib") && !x.Title.Contains("1Pondo") && !x.Title.Contains("Kin8tengoku") && !x.Title.Contains("Pacopacomama") && !x.Title.Contains("[HD]") && !x.Title.Contains("[HD/New]"));
 
             _Ocn.PostMs.AddRange(PostMsAllfilter);
             var _saveCount = _Ocn.SaveChanges();
