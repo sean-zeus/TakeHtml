@@ -191,7 +191,7 @@ namespace TakeHtml.Controllers
 
             var _imghref = _img?.Split("(")[2].Split(")");
             var imgDom = GetIDocument(_imghref[0]).Result;
-            var imgElement = imgDom?.QuerySelector("#body > p > img"); //Select(node => node.InnerHtml);;
+            var imgElement = imgDom?.QuerySelector(".img-responsive"); //Select(node => node.InnerHtml);;
             var imglink = imgElement?.GetAttribute("src");
 
             return new { imgUrl = imglink, torrentUrl = _torrenthref };
