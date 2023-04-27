@@ -9,6 +9,7 @@ using AngleSharp.Html.Parser;
 using System.Text.RegularExpressions;
 using System;
 using Microsoft.AspNetCore.SignalR;
+using System.IO;
 
 //using System.Data;
 //using System.Text;
@@ -122,7 +123,7 @@ namespace TakeHtml.Controllers
                 return new PostM
                 {
                     Date = _itemDate,
-                    Title = _itemtitle.Replace("[HD/720p]", ""),
+                    Title = _itemtitle.Replace("[HD/720p]", "").Trim(),
                     Link = baseUrl + link,
                     Project = startDate.ToString("yyyy-MM-dd") + '~' + endDate.ToString("yyyy-MM-dd")
                 };
@@ -182,24 +183,35 @@ namespace TakeHtml.Controllers
         {
             var dom = GetIDocument(URL).Result;
 
+            var _torrenthref = baseurl + dom.QuerySelector(torrentCssSel)?.GetAttribute("href");
+
             //捉一筆
             var _img = dom.QuerySelector(imgCssSel)?.InnerHtml;  //dom.QuerySelector(imgCssSel)?.InnerHtml;
             //捉多筆
             //var _imgs = dom.QuerySelectorAll(imgCssSel).Select(x => x.TextContent); //Select(node => node.InnerHtml);
 
-            var _torrenthref = baseurl + dom.QuerySelector(torrentCssSel)?.GetAttribute("href");
+            string imglink = "";
+            if (_img != null)
+            {
+                var _imghref = _img?.Split("(")[1].Split(")");
 
-            var _imghref = _img?.Split("(")[2].Split(")");
-            var imgDom = GetIDocument(_imghref[0]).Result;
-            var imgElement = imgDom?.QuerySelector(".img-responsive"); //Select(node => node.InnerHtml);;
-            var imglink = imgElement?.GetAttribute("src");
+                //------------2023330427增加
+                var okimg = _imghref[0]?.Split("/");
+                var sfsd = okimg[okimg.Count() - 1].Replace(".jpg", "");
+                var okimg2 = "https://imagetwist.com/" + sfsd;
+                //------------2023330427增加
+
+                var imgDom = GetIDocument(okimg2).Result;
+                var imgElement = imgDom?.QuerySelector(".img-responsive"); //Select(node => node.InnerHtml);;
+                imglink = imgElement?.GetAttribute("src");
+            }
 
             return new { imgUrl = imglink, torrentUrl = _torrenthref };
         }
 
         public async Task<IActionResult> GetPostsDetails(string Project, string imgCssSel = "", string TorrentCssSel = "", string baseurl = "")
         {
-            var _proJect = _Ocn.PostMs.Where(x => x.Project == Project && x.imgUrl == null || x.torrentUrl == null).ToList();
+            var _proJect = _Ocn.PostMs.Where(x => x.Project == Project && string.IsNullOrWhiteSpace(x.imgUrl) || string.IsNullOrWhiteSpace(x.torrentUrl) == null).ToList();
 
             var updateItems = new List<dynamic>();
             foreach (var row in _proJect)
@@ -213,6 +225,21 @@ namespace TakeHtml.Controllers
                         imgUrl = _downLinks.imgUrl,
                         torrentUrl = _downLinks.torrentUrl
                     });
+                }
+
+                if (row.Title?.Length > 180)
+                {
+                    Regex pattern = new Regex("[\u3040-\u309F\u30A0-\u30FF]");
+                    var restr = pattern.Replace(row.Title, "");
+
+                    if (restr.Length > 180)
+                    {
+                        row.Title = restr.Substring(0, 180);
+                    }
+                    else
+                    {
+                        row.Title = restr;
+                    }
                 }
 
                 if (_downLinks.imgUrl != null) WebCrawler.BatchDownload(@"DownData/" + Project, _downLinks.imgUrl, row.Title + ".jpg");
@@ -306,6 +333,11 @@ namespace TakeHtml.Controllers
                     Directory.CreateDirectory(saveDir);
 
                 string SaveFilePath = Path.Combine(saveDir, restr);
+
+                if (File.Exists(SaveFilePath))
+                {
+                    SaveFilePath += " (2)";
+                }
 
                 WebClient webClient = new WebClient();
                 webClient.DownloadFile(ImgUrl, SaveFilePath);
