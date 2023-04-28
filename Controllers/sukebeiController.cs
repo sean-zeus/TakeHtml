@@ -227,14 +227,14 @@ namespace TakeHtml.Controllers
                     });
                 }
 
-                if (row.Title?.Length > 180)
+                if (row.Title?.Length > 100)
                 {
                     Regex pattern = new Regex("[\u3040-\u309F\u30A0-\u30FF]");
                     var restr = pattern.Replace(row.Title, "");
 
-                    if (restr.Length > 180)
+                    if (restr.Length > 160)
                     {
-                        row.Title = restr.Substring(0, 180);
+                        row.Title = restr.Substring(0, 160);
                     }
                     else
                     {
